@@ -1,0 +1,40 @@
+landuseType,buildingCode,percent
+Automotive Service Commercial,IW,100
+Community/Cultural,INST,100
+General Retail Commercial,OR,100
+Industrial General,IW,100
+Industrial Heavy,IW,100
+Industrial and Commercial Multiples,HR,30
+Industrial and Commercial Multiples,IW,50
+Industrial and Commercial Multiples,OR,20
+Mixed Residential Commercial < five storeys,WFA4L,60
+Mixed Residential Commercial < five storeys,HM,10
+Mixed Residential Commercial < five storeys,HR,10
+Mixed Residential Commercial < five storeys,OR,20
+Mixed Residential Commercial >= five storeys,CAB5M,60
+Mixed Residential Commercial >= five storeys,HM,10
+Mixed Residential Commercial >= five storeys,HR,10
+Mixed Residential Commercial >= five storeys,OR,20
+Office,OR,100
+Other Retail,OR,100
+Place of Religious Assembly,INST,100
+Public or Municipal Parking,IW,100
+Public/Institutional,INST,100
+Residential Apartments,WFA4L,50
+Residential Apartments,CAB5M,50
+Residential Detached,ONWB,20
+Residential Detached,ONWOB,20
+Residential Detached,SLH,20
+Residential Detached,TSHWB,20
+Residential Detached,TSHWOB,20
+Residential Other Multiples,TSHWB,60
+Residential Other Multiples,WFA4L,20
+Residential Other Multiples,CAB5M,20
+Residential Semi-Detached,ONWB,25
+Residential Semi-Detached,ONWOB,25
+Residential Semi-Detached,TSHWB,25
+Residential Semi-Detached,TSHWOB,25
+Residential Townhouses,ONWB,80
+Residential Townhouses,TSHWB,20
+School,INST,100
+Utility/Public Work,OR,100

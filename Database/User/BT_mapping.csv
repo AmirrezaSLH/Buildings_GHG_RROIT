@@ -1,0 +1,14 @@
+USER_BT_NAME,USER_BT_CODE,MODEL_BT
+One Storey House with basement,ONWB,One Storey House with basement
+One Storey House without basement,ONWOB,One Storey House without basement
+Split Level House,SLH,One Storey House with basement
+Two Storey House with basement,TSHWB,Two Storey House with basement
+Two Storey House without basement,TSHWOB,Two Storey House without basement
+Mobile Home,MH,Mobile Home
+Wood framed apartment (4 floors or less),WFA4L,MURB
+Concrete apartment building (5 floors or more),CAB5M,MURB
+Office/ Retail,OR,Office and Retail
+Industrial/ Warehouse,IW,Industrial and Warehouse
+Hotel/ Motel,HM,Accomodation and Food
+High Rise,HR,Other Commercial
+Institution,INST,Institution

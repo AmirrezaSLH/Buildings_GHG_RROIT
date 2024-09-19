@@ -1,0 +1,12 @@
+﻿BTYPE,ELECTRICITY,NG,OTHER
+One Storey House with basement,0.1722,0.5282,0
+One Storey House without basement,0.1791,0.5991,0
+Two Storey House with basement,0.1279,0.4249,0
+Two Storey House without basement,0.1238,0.4839,0
+Mobile Home,0.6464,0.5769,0
+MURB,0.2727,0.5517,0
+Office and Retail,0.5697,0.8473,0
+Industrial and Warehouse,0.4725,0.9857,0
+Institution,0.7688,1.34,0
+Accomodation and Food,0.7573,1.3517,0
+Other Commercial,0.5169,0.9543,0
