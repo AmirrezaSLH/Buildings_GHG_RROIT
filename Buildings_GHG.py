@@ -64,20 +64,21 @@ def init_btype_info(file_path='Database/Default/BTYPE_info.csv'):
 
     Returns:
     - tuple:
-        - list: A list of building types (BTYPE).
-        - dict: A dictionary where each key is a building type (BTYPE) and its value is another dictionary
+        - list: A list of building types code(BTYPE_CODE).
+        - dict: A dictionary where each key is a building type (BTYPE_CODE) and its value is another dictionary
                 mapping EUI categories to their values for that building type.
     """
     # Read the CSV file into a DataFrame
     btype_info_df = pd.read_csv(file_path)
     
-    # Extract a list of building types (BTYPE) from the DataFrame
-    bt_list = btype_info_df["BTYPE"].tolist()
+    # Extract a list of building types (BTYPE_CODE) from the DataFrame
+    bt_list = btype_info_df["BTYPE_CODE"].tolist()
     
     # Define the column name for the building type
-    building_type_column = 'BTYPE'
+    building_type_column = 'BTYPE_CODE'
+    building_type_fullname_column = 'BTYPE'
     # Identify all EUI columns (excluding the building type column)
-    eui_columns = set(btype_info_df.columns) - {building_type_column}
+    eui_columns = set(btype_info_df.columns) - {building_type_column} - {building_type_fullname_column}
     
     # Initialize a dictionary to store EUI information by building type
     all_bt_eui_dict = {}
@@ -90,7 +91,6 @@ def init_btype_info(file_path='Database/Default/BTYPE_info.csv'):
     
     return bt_list, all_bt_eui_dict
 
-t1, t2 = init_btype_info()
 
 def init_degree_days(file_path='Database/default/Degree_Days.csv'):
     """
@@ -135,7 +135,7 @@ def init_bt_mapping(filepath='Database/User/BT_mapping.csv'):
     """
     Reads a Building Type (BT) mapping from a CSV file and creates a dictionary mapping from user BT codes to model BTs.
     
-    This function loads a CSV file that maps user-defined building type codes (USER_BT_CODE) to model building types (MODEL_BT).
+    This function loads a CSV file that maps user-defined building type codes (USER_BT_CODE) to model building types (MODEL_BT_CODE).
     It converts this mapping into a dictionary for easy access and use in further processing or mapping tasks.
 
     Parameters:
@@ -143,13 +143,13 @@ def init_bt_mapping(filepath='Database/User/BT_mapping.csv'):
 
     Returns:
     - dict: A dictionary where each key is a user-defined building type code (USER_BT_CODE) and its value is the corresponding
-            model building type (MODEL_BT).
+            model building type (MODEL_BT_CODE).
     """
     # Load the CSV file into a DataFrame
     bt_mapping_df = pd.read_csv(filepath)
     
     # Directly convert the DataFrame to a dictionary
-    bt_mapping_dict = bt_mapping_df.set_index('USER_BT_CODE')['MODEL_BT'].to_dict()
+    bt_mapping_dict = bt_mapping_df.set_index('USER_BT_CODE')['MODEL_BT_CODE'].to_dict()
     
     return bt_mapping_dict
 
@@ -249,8 +249,8 @@ def init_land_building_mapping(bt_mapping_dict, file_path='Database/RROIT/Landus
     
     This function reads a CSV file containing mappings between building codes and land use types, along with a
     percentage that represents the distribution of each building type within a land use type. It uses a provided
-    dictionary to map building codes to model building types (MODEL_BT), aggregates the percentages by land use
-    and MODEL_BT, pivots the table for a comprehensive view, and finally converts it into a dictionary of dictionaries
+    dictionary to map building codes to model building types codes (MODEL_BT_CODE), aggregates the percentages by land use
+    and MODEL_BT_CODE, pivots the table for a comprehensive view, and finally converts it into a dictionary of dictionaries
     for easy access.
     
     Parameters:
@@ -258,28 +258,27 @@ def init_land_building_mapping(bt_mapping_dict, file_path='Database/RROIT/Landus
     - file_path (str, optional): The file path to the CSV file containing the mappings. Defaults to a predefined path.
 
     Returns:
-    - dict: A dictionary where each key is a land use type and its value is another dictionary mapping MODEL_BT to
+    - dict: A dictionary where each key is a land use type and its value is another dictionary mapping MODEL_BT_CODE to
             the aggregated percentage sum of that building type for the land use.
     """
     # Read the CSV file into a DataFrame
     land_building_mapping_df = pd.read_csv(file_path)
     
-    # Map 'buildingCode' to the model building type (MODEL_BT) using the provided dictionary
-    land_building_mapping_df['MODEL_BT'] = land_building_mapping_df['buildingCode'].map(bt_mapping_dict)
+    # Map 'buildingCode' to the model building type (MODEL_BT_CODE) using the provided dictionary
+    land_building_mapping_df['MODEL_BT_CODE'] = land_building_mapping_df['buildingCode'].map(bt_mapping_dict)
     
-    # Group by 'landuseType' and 'MODEL_BT', and sum 'percent' for each group
-    aggregated_df = land_building_mapping_df.groupby(['landuseType', 'MODEL_BT'])['percent'].sum().reset_index()
+    # Group by 'landuseType' and 'MODEL_BT_CODE', and sum 'percent' for each group
+    aggregated_df = land_building_mapping_df.groupby(['landuseType', 'MODEL_BT_CODE'])['percent'].sum().reset_index()
     
-    # Pivot the aggregated DataFrame to have 'MODEL_BT' as columns with their sums as values
-    # Fill missing values with 0 to ensure every MODEL_BT has a value for each landuseType
-    pivot_df = aggregated_df.pivot(index='landuseType', columns='MODEL_BT', values='percent').fillna(0)
+    # Pivot the aggregated DataFrame to have 'MODEL_BT_CODE' as columns with their sums as values
+    # Fill missing values with 0 to ensure every MODEL_BT_CODE has a value for each landuseType
+    pivot_df = aggregated_df.pivot(index='landuseType', columns='MODEL_BT_CODE', values='percent').fillna(0)
     
     # Convert the pivoted DataFrame to a dictionary of dictionaries for land use to building type ratios
     landuse_building_ratio_dict = pivot_df.to_dict(orient='index')
     
     return landuse_building_ratio_dict
 
-test = init_land_building_mapping( init_bt_mapping() )
 #Spatial Manupilations
 
 def landuse_contain_buildings(buildings_shapefile, landuse_shapefile, landuse_building_ratio_dict):
@@ -497,12 +496,7 @@ def spatial_GHG_calculator_building_level(buildings_shapefile, land_building_map
         else:
             # Set GHG to None if no suitable mapping is found
             BGHG = None
-        '''
-        if BGHG is not None:
-            BGH_KT = (BGHG/1000) / 1000
-        else: 
-            BGH_KT = None
-        '''    
+
         BGHG_list.append(BGHG)  # Append the calculated GHG value to the list
     
     # Add the GHG calculations as a new column in the shapefile
@@ -556,7 +550,7 @@ def spatial_GHG_calculator_landuse_level(buildings_shapefile, landuse_shapefile)
     
     return landuse_shapefile
 
-def initialize_building_GHG():
+def initialize_building_GHG_layers():
     """
     Initialize and prepare all necessary data for calculating greenhouse gas (GHG) emissions for buildings.
     
@@ -629,17 +623,20 @@ def run_buildings_GHG(bt_info, emissions_factors, buildings_shapefile_mapped, la
     # Normalize the building energy use intensity (EUI) based on weather data (Degree Days)
     bt_emissions_intensity = bt_emissions_intensity_calculator(bt_info, emissions_factors, year, HDD_dict, CDD_dict, avg_HDD, avg_CDD)
 
+    temp_building_shapefile = buildings_shapefile_mapped.copy()
     # Calculate GHG emissions for each building based on its footprint, type, and land use
-    buildings_GHG = spatial_GHG_calculator_building_level(buildings_shapefile_mapped, land_building_ratio, bt_emissions_intensity, bt_mapping)
+    buildings_GHG = spatial_GHG_calculator_building_level(temp_building_shapefile, land_building_ratio, bt_emissions_intensity, bt_mapping)
     
+    temp_landuse_shapefile = landuse_shapefile_filtered.copy()
     # Aggregate GHG emissions at the land use level by summing the building-level GHG data within each land use area
-    landuse_GHG = spatial_GHG_calculator_landuse_level(buildings_GHG, landuse_shapefile_filtered)
+    landuse_GHG = spatial_GHG_calculator_landuse_level(buildings_GHG, temp_landuse_shapefile)
     
     # Return the calculated GHG emissions at both the building and land use levels
     return buildings_GHG, landuse_GHG
 
 #%%
 
+#The following functions are for saving the outputs and creating plots.
 
 def create_output_file(building_ghg_gdf, landuse_ghg_gdf, building_output_name="bghg", landuse_output_name='lghg', path="output", output_type="ESRI Shapefile"):
     """
@@ -687,72 +684,7 @@ def create_output_file(building_ghg_gdf, landuse_ghg_gdf, building_output_name="
 
     return 0
 
-#%%
-
-#Run this code once and the model will initialize everything
-bt_info, emissions_factors, buildings_shapefile_mapped, land_building_ratio, bt_mapping, landuse_shapefile_filtered = initialize_building_GHG()
-
-
-#Run this line to calculate GHG for the specific year. This makes the code faster.
-bghg, lghg = run_buildings_GHG(bt_info, emissions_factors, buildings_shapefile_mapped, land_building_ratio, bt_mapping, landuse_shapefile_filtered, 2020)
-
-
-bghg_2050, lghg_2050 = run_buildings_GHG(bt_info, emissions_factors, buildings_shapefile_mapped, land_building_ratio, bt_mapping, landuse_shapefile_filtered, 2050)
-
-#%%
-
-bghg, lghgh = run_buildings_GHG(2020)
-
-#create_output_file(bghg, lghgh)
-
-#ghg_save = bghg.copy()
-
-bghg_save = bghg_save.drop('centroid', axis=1)
-bghg_save.rename(columns={
-    'GHG_Intensity': 'GHGIntense',
-    'landuse_type': 'LU_Tpe'
-}, inplace=True)
-lghgh.to_file('dataframe.shp')
-lghgh.rename(columns={
-    'GHG_Intensity': 'GHGIntense',
-}, inplace=True)
-# Plot the GHG emissions for each building, showing the distribution of emissions across the area.
-#kg CO2e
-#kg CO2e / m2
-bghg.plot(column='GHG', legend=True)
-bghg.plot(column='GHG_Intensity', legend=True)
-
-bghg['GHG'] = bghg['GHG'] / 1000
-lghg['GHG'] = lghg['GHG'] / 1000
-tbghg_intensity = sum(bghg['GHG_Intensity'])
-kt_tbghg = tbghg/1000
-kt_tbghg
-# Plot the aggregated GHG emissions for each land use category, illustrating the impact at a broader scale.
-#kg CO2e
-#kg CO2e / m2
-lghg.plot(column='GHG', legend=True)
-lghg.plot(column='GHG_Intensity', legend=True)
-
-#%%
-bghg_save.to_file('dataframe.shp')
-bghg.to_file('dataframe.gpkg', driver='GPKG', layer='name')  
-output_filename = 'bghg.shp'
-bghg_save = bghg.drop('centroid', axis=1)
-temp_geometry = bghg_save['geometry']
-bghg_save.drop('geometry', axis=1, inplace=True)
-bghg_save['geometry'] = temp_geometry
-bghg_save.set_geometry('geometry')
-
-bghg_save.drop('Build_Type', axis=1, inplace=True)
-bghg_save.drop('Land_Use', axis=1, inplace=True)
-bghg_save.drop('centroid', axis=1, inplace=True)
-#bghg_save = gpd.GeoDataFrame(bghg_save, geometry='geometry')
-# Save the GeoDataFrame
-bghg.to_file(output_filename)
-
-#%% Plotting
-
-def plot_geodataframe(gdf, column_name, plot_title, legend_title, cmap='viridis', figsize=(10, 6)):
+def plot_heatmap(gdf, column_name, plot_title, legend_title, cmap='viridis', figsize=(10, 6)):
     """
     Plot a GeoDataFrame with color mapping based on a specified column.
 
@@ -797,22 +729,47 @@ def plot_geodataframe(gdf, column_name, plot_title, legend_title, cmap='viridis'
     # Display the plot
     plt.show()
     
+    return 0
+
+#%%
+
+"""
+The following code is an example of how to use the module.
+
+It demonstrates the process on Cooksville data.
+"""
+
+# Initialize the model with all necessary data layers.
+# Run this line once. After the first run, the model will be initialized, and this step doesn't need to be repeated.
+bt_info, emissions_factors, buildings_shapefile_mapped, land_building_ratio, bt_mapping, landuse_shapefile_filtered = initialize_building_GHG_layers()
+
+
+# Calculate GHG emissions for a specific year (e.g., 2020).
+# This step can be run multiple times for different years to get year-specific results.
+bghg, lghg = run_buildings_GHG(bt_info, emissions_factors, buildings_shapefile_mapped, land_building_ratio, bt_mapping, landuse_shapefile_filtered, 2020)
+
+# You can repeat the line above with different years if needed, e.g., for 2021:
+
 #%%    
 
-plot_geodataframe(bghg, 'GHG_T', 'Cooksville Buildings GHG Emissions', 'tonnes CO2e', cmap='jet', figsize=(10, 6))
-plot_geodataframe(bghg, 'GHG_Intensity', 'Cooksville Buildings GHG Emissions Intensities', 'Kg CO2e/$M^{2}$', cmap='jet', figsize=(10, 6))
+"""
+Demonstration: Plotting GHG Emission Maps and Printing Aggregate Results
+"""
 
-plot_geodataframe(lghg, 'GHG_T', 'Cooksville Landuse GHG Emissions', 'tonnes CO2e', cmap='jet', figsize=(10, 6))
-plot_geodataframe(lghg, 'GHG_Intensity', 'Cooksville Landuse GHG Emission Intensities', 'Kg CO2e/$m^{2}$', cmap='jet', figsize=(10, 6))
+# Plot heatmap for building-level total GHG emissions
+plot_heatmap(bghg, 'GHG_T', 'Cooksville Buildings GHG Emissions', 'tonnes $CO_{2}e$', cmap='jet', figsize=(10, 6))
 
-bghg['GHG'].sum()
-bghg['GHG_T'].sum()
-bghg['GHG_T'].sum() / 1000
+# Plot heatmap for building-level GHG intensity (per square meter)
+plot_heatmap(bghg, 'GHG_Intensity', 'Cooksville Buildings GHG Emissions Intensities', 'Kg $CO_{2}e$/$M^{2}$', cmap='jet', figsize=(10, 6))
 
-plot_geodataframe(bghg_2050, 'GHG_T', 'Cooksville Buildings GHG Emissions 2050', 'tonnes CO2e', cmap='jet', figsize=(10, 6))
-plot_geodataframe(bghg_2050, 'GHG_Intensity', 'Cooksville Buildings GHG Emissions Intensities 2050', 'Kg CO2e/$M^{2}$', cmap='jet', figsize=(10, 6))
+# Plot heatmap for land use-level total GHG emissions
+plot_heatmap(lghg, 'GHG_T', 'Cooksville Landuse GHG Emissions', 'tonnes $CO_{2}e$', cmap='jet', figsize=(10, 6))
 
-plot_geodataframe(lghg_2050, 'GHG_T', 'Cooksville Landuse GHG Emissions 2050', 'tonnes CO2e', cmap='jet', figsize=(10, 6))
-plot_geodataframe(lghg_2050, 'GHG_Intensity', 'Cooksville Landuse GHG Emission Intensities 2050', 'Kg CO2e/$m^{2}$', cmap='jet', figsize=(10, 6))
+# Plot heatmap for land use-level GHG intensity (per square meter)
+plot_heatmap(lghg, 'GHG_Intensity', 'Cooksville Landuse GHG Emission Intensities', 'Kg $CO_{2}e$/$m^{2}$', cmap='jet', figsize=(10, 6))
 
-bghg_2050['GHG'].sum()
+
+# Print Aggregate Emission Estimates
+print("Total Building GHG Emissions (kg CO2e):", bghg['GHG'].sum())  # Total kg CO2e
+print("Total Building GHG Emissions (Tonnes CO2e):", bghg['GHG_T'].sum())  # Total tonnes CO2e
+print("Total Building GHG Emissions (Kilo Tonnes CO2e):", bghg['GHG_T'].sum() / 1000) 
